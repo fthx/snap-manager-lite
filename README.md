@@ -1,0 +1,1 @@
+# snap-manager-lite
