@@ -1,70 +1,65 @@
 /*	Snap Manager Lite
     Unofficial snap manager for usual snap tasks
     GNOME Shell extension
-    GitHub contributors: fthx
-    (c) Francois Thirioux 2022
-    License: GPLv3  */
+    GitHub contributors: fthx */
 
 
-const { Gio, GObject, St } = imports.gi;
+import Clutter from 'gi://Clutter';
+import GObject from 'gi://GObject';
+import St from 'gi://St';
 
-const ExtensionUtils = imports.misc.extensionUtils;
-const Main = imports.ui.main;
-const Util = imports.misc.util;
-const Me = ExtensionUtils.getCurrentExtension();
-const PanelMenu = imports.ui.panelMenu;
-const PopupMenu = imports.ui.popupMenu;
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
+import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
+import * as Util from 'resource:///org/gnome/shell/misc/util.js';
 
-// here you can add/remove/hack the actions
-var menuActions =	[
-                        ["List installed snaps", "echo List installed snaps; echo; snap list"],
-                        ["List recent snap changes", "echo List recent snap changes; echo; snap changes"],
-                        ["List available snap refresh", "echo List available snap refresh; echo; snap refresh --list"],
-                        ["Refresh installed snaps", "echo Refresh installed snaps; echo; snap refresh"],
-                        ["Install snap...", "echo Install snap...; echo; read -p 'Enter snap name: ' snapname; echo; echo Available channels:; snap info $snapname | awk '/channels:/{y=1;next}y'; echo; read -p 'Enter channel (void=default): ' snapchannel; echo; snap install $snapname --channel=$snapchannel"],
-                        ["Remove snap...", "echo Remove snap...; echo; snap list; echo; read -p 'Enter snap name: ' snapname; echo; snap remove $snapname"]
-                    ];
-
-// here you can add/remove/hack the snap options
-var menuSnapOptions = [
-    ["Snap info...", "echo Snap info...; echo; read -p 'Enter snap name: ' snapname; echo; snap info --verbose $snapname"],
-    ["Refresh snap channel...", "echo Refresh snap channel...; echo; snap list; echo; read -p 'Enter snap name: ' snapname; echo; echo Available channels:; snap info $snapname | awk '/channels:/{y=1;next}y'; echo; read -p 'Enter new channel: ' snapchannel; echo; snap refresh $snapname --channel=$snapchannel"],
-    ["Revert snap refresh...", "echo Revert snap refresh...; echo; snap list; echo; read -p 'Enter snap name: ' snapname; echo; snap revert $snapname"],
-    ["Enable snap...", "echo Enable snap...; echo; snap list; echo; read -p 'Enter snap name: ' snapname; echo; snap enable $snapname"],
-    ["Disable snap...", "echo Disable snap...; echo; snap list; echo; read -p 'Enter snap name: ' snapname; echo; snap disable $snapname"]
-];
-
-// here you can add/remove/hack the snap connections
-var menuSnapConnections = [
-    ["List available interfaces", "echo List available interfaces; echo; snap interface"],
-    ["List snap connections...", "echo List snap connections...; echo; snap list; echo; read -p 'Enter snap name: ' snapname; echo; echo Available connections:; snap connections $snapname"],
-    ["Connect snap...", "echo Connect snap...; echo; snap list; echo; read -p 'Enter snap name: ' snapname; echo; echo Available connections:; snap connections $snapname; echo; read -p 'Enter interface to connect: ' snapconnection; echo; snap connect $snapname:$snapconnection"],
-    ["Disconnect snap...", "echo Disconnect snap...; echo; snap list; echo; read -p 'Enter snap name: ' snapname; echo; echo Available connections:; snap connections $snapname; echo; read -p 'Enter interface to disconnect: ' snapconnection; echo; snap disconnect $snapname:$snapconnection"],
-];
-
-// here you can add/remove/hack the hold refresh time options
-var menuRefreshOptions = [
-    ["Refresh schedule", "echo Refresh schedule; echo; snap refresh --time"],
-    ["Hold auto refresh for one hour", "echo Hold auto refresh for one hour; echo; snap refresh --hold=1h"],
-    ["Hold auto refresh for one day", "echo Hold auto refresh for one day; echo; snap refresh --hold=24h"],
-    ["Hold auto refresh for one week", "echo Hold auto refresh for one week; echo; snap refresh --hold=168h"],
-    ["Hold auto refresh forever", "echo Hold auto refresh forever; echo; snap refresh --hold"],
-    ["Unhold auto refresh", "echo Unhold auto refresh; echo; snap refresh --unhold"]
-];
-
-// define local Gio snap symbolic icon
-var iconPath = Me.path + "/snap-symbolic.svg";
-var snapIcon = Gio.icon_new_for_string(iconPath);
 
 var SnapMenu = GObject.registerClass(
 class SnapMenu extends PanelMenu.Button {
     _init() {
-        super._init(0.0, 'Snap manager');
+        super._init(0.5, 'Snap manager');
 
-        this.hbox = new St.BoxLayout({style_class: 'panel-status-menu-box'});
-        this.icon = new St.Icon({gicon: snapIcon, style_class: 'system-status-icon'});
-        this.hbox.add_child(this.icon);
-        this.add_child(this.hbox);
+        //let icon = new St.Icon({icon_name: 'snap-symbolic', style_class: 'system-status-icon'});
+        //this.add_actor(icon);
+        let label = new St.Label({text: 'Snaps', y_expand: true, y_align: Clutter.ActorAlign.CENTER});
+        this.add_actor(label);
+
+        // here you can add/remove/hack the actions
+        let menuActions =	[
+            ["List installed snaps", "echo List installed snaps; echo; snap list"],
+            ["List recent snap changes", "echo List recent snap changes; echo; snap changes"],
+            ["List available snap refresh", "echo List available snap refresh; echo; snap refresh --list"],
+            ["Refresh installed snaps", "echo Refresh installed snaps; echo; snap refresh"],
+            ["Install snap...", "echo Install snap...; echo; read -p 'Enter snap name: ' snapname; echo; echo Available channels:; snap info $snapname | awk '/channels:/{y=1;next}y'; echo; read -p 'Enter channel (void=default): ' snapchannel; echo; snap install $snapname --channel=$snapchannel"],
+            ["Remove snap...", "echo Remove snap...; echo; snap list; echo; read -p 'Enter snap name: ' snapname; echo; snap remove $snapname"]
+        ];
+
+        // here you can add/remove/hack the snap options
+        let menuSnapOptions = [
+            ["Snap info...", "echo Snap info...; echo; read -p 'Enter snap name: ' snapname; echo; snap info --verbose $snapname"],
+            ["Refresh snap channel...", "echo Refresh snap channel...; echo; snap list; echo; read -p 'Enter snap name: ' snapname; echo; echo Available channels:; snap info $snapname | awk '/channels:/{y=1;next}y'; echo; read -p 'Enter new channel: ' snapchannel; echo; snap refresh $snapname --channel=$snapchannel"],
+            ["Revert snap refresh...", "echo Revert snap refresh...; echo; snap list; echo; read -p 'Enter snap name: ' snapname; echo; snap revert $snapname"],
+            ["Enable snap...", "echo Enable snap...; echo; snap list; echo; read -p 'Enter snap name: ' snapname; echo; snap enable $snapname"],
+            ["Disable snap...", "echo Disable snap...; echo; snap list; echo; read -p 'Enter snap name: ' snapname; echo; snap disable $snapname"]
+        ];
+
+        // here you can add/remove/hack the snap connections
+        let menuSnapConnections = [
+            ["List available interfaces", "echo List available interfaces; echo; snap interface"],
+            ["List snap connections...", "echo List snap connections...; echo; snap list; echo; read -p 'Enter snap name: ' snapname; echo; echo Available connections:; snap connections $snapname"],
+            ["Connect snap...", "echo Connect snap...; echo; snap list; echo; read -p 'Enter snap name: ' snapname; echo; echo Available connections:; snap connections $snapname; echo; read -p 'Enter interface to connect: ' snapconnection; echo; snap connect $snapname:$snapconnection"],
+            ["Disconnect snap...", "echo Disconnect snap...; echo; snap list; echo; read -p 'Enter snap name: ' snapname; echo; echo Available connections:; snap connections $snapname; echo; read -p 'Enter interface to disconnect: ' snapconnection; echo; snap disconnect $snapname:$snapconnection"]
+        ];
+
+        // here you can add/remove/hack the hold refresh time options
+        let menuRefreshOptions = [
+            ["Refresh schedule", "echo Refresh schedule; echo; snap refresh --time"],
+            ["Hold auto refresh for one hour", "echo Hold auto refresh for one hour; echo; snap refresh --hold=1h"],
+            ["Hold auto refresh for one day", "echo Hold auto refresh for one day; echo; snap refresh --hold=24h"],
+            ["Hold auto refresh for one week", "echo Hold auto refresh for one week; echo; snap refresh --hold=168h"],
+            ["Hold auto refresh forever", "echo Hold auto refresh forever; echo; snap refresh --hold"],
+            ["Unhold auto refresh", "echo Unhold auto refresh; echo; snap refresh --unhold"]
+        ];
 
         menuActions.forEach(this._addSnapMenuItem.bind(this));
 
@@ -103,7 +98,7 @@ class SnapMenu extends PanelMenu.Button {
     // main menu items
     _addSnapMenuItem(item, index, array) {
         if (index == 3) {
-                this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem())
+            this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem())
         }
         this.menu.addAction(item[0],_ => {
             this._executeAction(item[1])
@@ -132,21 +127,14 @@ class SnapMenu extends PanelMenu.Button {
     }
 });
 
-class Extension {
-    constructor() {
-    }
-
+export default class SnapManagerLiteExtension {
     enable() {
-        this.snap_indicator = new SnapMenu();
-        Main.panel.addToStatusArea('snap-menu', this.snap_indicator);
+        this._snap_indicator = new SnapMenu();
+        Main.panel.addToStatusArea('snap-menu', this._snap_indicator);
     }
 
     disable() {
-        this.snap_indicator.destroy();
-        this.snap_indicator = null;
+        this._snap_indicator.destroy();
+        this._snap_indicator = null;
     }
-}
-
-function init() {
-    return new Extension();
 }
